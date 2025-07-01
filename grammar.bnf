@@ -1,0 +1,79 @@
+# NQ grammar
+code ::= [{<import> | <declare'global'> | <function> | <class> | <single_line_comment> | <multi_line_comment>}]
+declare ::= (('var' | 'const') | ('attr' | 'static') ['public']) <type> <identifier'var_name'> ['=' <expression>] [{',' <identifier'var_name'> ['=' <expression>]}] ';'
+declare_args ::= <type> <identifier'var_name'> [{',' <type> <identifier'var_name'>}] [',' '*' <type> <identifier'var_name'>]
+declare_generic ::= '<' <identifier'type_name'> [{',' <identifier'type_name'>}] '>'
+type ::= <builtin_type> | <identifier'class_name'> | <type> '<' <type> [{',' <type>}] '>'
+expression ::= <term> {<operator> <term>}
+term ::= ('$' | '@' | '-' | '~' | '!') <term> | <call> | <variable> | <value> | '(' <expression> ')'
+call ::= <variable> [<use_generic>] '(' [<expression> [{',' <expression>}]] ')'
+use_generic ::= '<' <type> [{',' <type>}] '>'
+variable ::= <identifier'var_name'> | ('(' <expression> ')' | <call> | <variable>) ['[' <expression> ']' | '.' <identifier'attr_name'>]
+value ::= <int> | <char> | <bool> | <null> | <string> | <float> | <arr> | <pointer> | <dict> | <tuple> | '$' <pointer>
+arr ::= '[' <expression> [{',' <expression>}] ']'
+tuple ::= '(' <expression> [{',' <expression>}] ')'
+dict ::= '{' [<expression'type_not_equal_to_container'> ':' <expression> [{',' <expression'type_not_equal_to_container'> ':' <expression>}]] '}'
+function ::= 'func' ['const'] <type> <identifier'func_name'> [<declare_generic>] '(' [<declare_args>] ')' '{' <statements> '}'
+class ::= 'class' <identifier'class_name'> [<declare_generic>] '{' [{<declare'attr'> | <method> | <func>}] '}'
+method ::= 'method' [('public' | 'op')] <type> <identifier'method_name'> [<declare_generic>] '(' <identifier'self'> [',' <declare_args>] ')' '{' <statements> '}'
+statements ::= [{<if> | <for> | <while> | <return> | <expression> ';' | <break> | <continue> | <declare>}]
+if ::= 'if' '(' <expression> ')' '{' <statements> '}' [{'elif' '(' <expression> ')' '{' <statements> '}'}] ['else' '{' <statements> '}']
+for ::= 'for' [<identifier'label'>] '(' <for_loop> ')' '{' <statements> '}' ['else' '{' <statements> '}']
+for_loop ::= <type> <identifier'var_name'> 'in' <container> | <expression> ';' <expression> ';' <expression>
+container ::= <arr> | <tuple> | <dict> | <str> | <expression'type_equal_to_container'>
+while ::= 'while' [<identifier'label'>] '(' <expression> ')' '{' <statements> '}' ['else' '{' <statements> '}']
+return ::= 'return' [<expression>] ';'
+break ::= 'break' [<identifier'label'>] ';'
+continue ::= 'continue' [<identifier'label'>] ';'
+import ::= 'import' (<identifier'stdlib_name'> | <str'userlib_name'> 'as' <identifier'alias_name'>) ';'
+
+# tokens type
+identifier ::= (<atoz> | <AtoZ> | '_') {<atoz> | <AtoZ> | <digit> | '_'}
+symbol ::= '(' | ')' | '[' | ']' | '{' | '}' | ',' | ';' | '.' | <operator>
+int ::= ['-'] <digit> [{<digit>}]
+char ::= "'" <unicode_character> "'"
+string ::= '"' [{<unicode_character>}] '"'
+float ::= ['-'] <digit> [{<digit>}] '.' <digit> [{<digit>}]
+keyword ::= <bool> | <void> | <null> | 'if' | 'elif' | 'else'
+        | 'for' | 'in' | 'while' | 'return' | 'break' | 'continue' | 'import' | 'const'
+        | 'public' | 'func' | 'method' | 'class' | 'var' | 'as'
+single_line_comment ::= ('#' | "//") [{<unicode_character>}] '\n'
+multi_line_comment ::= '/*' [{<unicode_character> | '\n'}] '*/'
+
+# terminal symbol
+atoz ::= 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm'
+        | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z'
+AtoZ ::= 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M'
+        | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z'
+digit ::= '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
+unicode_character
+builtin_type ::= 'int' | 'char' | 'bool' | 'void' | 'str' | 'float' | 'arr' | 'pointer'
+        | 'range' | 'type' | 'tuple' | 'dict'
+operator ::= '*' | '/' | '%' | '+' | '-' | '<<' | '>>' | '<' | '<=' | '>' | '>=' | '=='
+| '!=' | '&' | '^' | '|' | '&&' | '||' | '=' | '+=' | '-=' | '*=' | '/=' | '%=' |
+'<<=' | '>>=' | '&=' | '^=' | '|=' | '!' | '~' | '@' | '$'
+bool ::= 'true' | 'false'
+void ::= 'void'
+null ::= 'NULL'
+
+# Precedence Operator
+# 1          a * b, a / b, a % b
+# 2          a + b, a - b
+# 3          a << b, a >> b
+# 4          a < b, a <= b, a > b, a >= b
+# 5          a == b, a != b
+# 6          a & b, a ^ b, a | b
+# 7          a && b, a || b
+# 8          a = b, a += b, a -= b, a *= b, a /= b, a %= b
+# 8          a <<= b, a >>= b, a &= b, a ^= b, a |= b
+# Precedence 8 associativity is right-to-left
+# processed by term:
+# -a    unary plus and minus
+# !a    logical NOT
+# ~a    bitwise NOT
+# @a    indirection (dereference)
+# $a    address-of
+# processed by variable:
+# a()   function call
+# a[]   subscript
+# a.b   member access
