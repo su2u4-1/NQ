@@ -21,7 +21,7 @@
 `return`: return from a function, jump to return address  
 `function {name} {n}`: define a function with name and n arguments  
 # registers
-> note: `$hs`, `$he`, `$cs`, `$ce`, `$ds`, `$de`, `$hs`, `$he`, `$ss`, `$se`, `$zero`, `$one` and `$mem` are not actually registers but memory maps  
+> note: `$hs`, `$he`, `$cs`, `$ce`, `$ds`, `$de`, `$hs`, `$he`, `$ss`, `$se`, `$zero`, `$one`, `$mem` and `$s0` ~ `$s53` are not actually registers but memory maps  
 > note: `$mem` accesses the memory address specified by `$addr`  
 ## read-only registers
 `$zero`: always zero, used for comparisons  
@@ -42,7 +42,7 @@
 `$fp`: frame pointer, points to the current function's frame  
 `$pc`: program counter, points to the current instruction, used for implementation `jump` instruction  
 `$a` ~ `$z`: general-purpose registers  
-`$s0` ~ `$s15`: saved registers, used for saving values across function calls
+`$s0` ~ `$s53`: saved registers, used for saving values across function calls
 # operators
 ## two operands
 ### arithmetic
@@ -95,7 +95,7 @@
 |0x28|`$s0`| -> some address|saved register s0|
 |0x2c|`$s1`| -> some address|saved register s1|
 ......
-|0x64|`$s15`| -> some address|saved register s15|
+|0xfc|`$s53`| -> some address|saved register s53|
 ## stack design
 |stack|
 |-----|
@@ -104,7 +104,7 @@
 |frame2 (...)|
 ......
 ### frame structure
-note: n is the number of arguments, m is the number of local variables
+> note: n is the number of arguments, m is the number of local variables
 |describe|pointer|
 |--------|-------|
 |arg0| <- ($fp - n)|
@@ -126,7 +126,7 @@ note: n is the number of arguments, m is the number of local variables
 |object2| <- ($hs + object0 size + object1 size)|
 ......
 ### object structure
-note: take object0 as an example
+> note: take object0 as an example
 |describe|pointer|
 |--------|-------|
 |size| <- $hs|
