@@ -1,4 +1,6 @@
 # operators
+The processed of processed by variable is greater than processed by term.
+The associativity of precedence 8 is right-to-left.
 ## basic operators
 |Precedence|Operator|Description|
 |-|-|-|
@@ -31,7 +33,6 @@
 |8|a &= b|compound assignment by bitwise AND|
 |8|a ^= b|compound assignment by bitwise XOR|
 |8|a \|= b|compound assignment by bitwise OR|
-> note: Precedence 8 and 0 associativity is right-to-left
 ## unary operators
 ### processed by term
 |Operator|Description|
