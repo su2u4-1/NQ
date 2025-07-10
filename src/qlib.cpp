@@ -1,10 +1,21 @@
 #include "../include/qlib.h"
 
-vector<string> symbol1{"*", "/", "%", "+", "-", "<<", ">>", "<", ">", "&", "^", "|", "=", "!"};
-vector<string> symbol2{"+=", "-=", "*=", "/=", "%=", "<<=", ">>=", "&=", "^=", "|=", "<=", ">=", "==", "!=", "&&", "||", "(", ")", "[", "]", "{", "}", ",", ";", ".", "~", "@", "$"};
-vector<string> op2{"*", "/", "%", "+", "-", "<<", ">>", "<", "<=", ">", ">=", "==", "!=", "&", "^", "|", "&&", "||", "=", "+=", "-=", "*=", "/=", "%=", "<<=", ">>=", "&=", "^=", "|="};
-vector<string> op1{"-", "!", "~", "@", "$"};
-vector<string> keyword{"if", "elif", "else", "for", "in", "while", "return", "break", "continue", "import", "const", "public", "func", "method", "class", "var", "as", "true", "false", "void", "NULL"};
+unordered_set<string> _symbol1{"*", "/", "%", "+", "-", "<<", ">>", "<", ">", "&", "^", "|", "=", "!"};
+unordered_set<string> _symbol2{"+=", "-=", "*=", "/=", "%=", "<<=", ">>=", "&=", "^=", "|=", "<=", ">=", "==", "!=", "&&", "||", "(", ")", "[", "]", "{", "}", ",", ";", ".", "~", "@", "$"};
+unordered_set<string> _op2{"*", "/", "%", "+", "-", "<<", ">>", "<", "<=", ">", ">=", "==", "!=", "&", "^", "|", "&&", "||", "=", "+=", "-=", "*=", "/=", "%=", "<<=", ">>=", "&=", "^=", "|="};
+unordered_set<string> _op1{"-", "!", "~", "@", "$"};
+unordered_set<string> KEYWORD{"if", "elif", "else", "for", "in", "while", "return", "break", "continue", "import", "const", "public", "func", "method", "class", "var", "as", "true", "false", "void", "NULL"};
+
+string HELP_DOCS =
+    "Usage: qlib <filename> [options]\n"
+    "Options:\n"
+    "  -oa,  --output-ast        Output AST to file\n"
+    "  -oaj, --output-ast-json   Output AST to JSON file\n"
+    "  -oan, --output-ast-none   No output AST\n"
+    "  -h,   --help              Show this help message\n";
+fs::path BASEPATH = path_processing(fs::absolute(fs::path(__FILE__).parent_path().parent_path()));
+fs::path STDLIBPATH = BASEPATH / "stdlib";
+string VERSION = "x.y.z";  // Placeholder for version
 
 void error(const string& msg, const fs::path& file_name, pair<int, int> pos, const string& source_code) {
     // File "d:\NQ\format.py", line 50, in <module>
@@ -16,12 +27,14 @@ void error(const string& msg, const fs::path& file_name, pair<int, int> pos, con
 }
 
 int is_symbol(const string& word) {
-    for (const string& sym : symbol1)
-        if (word == sym) return 1;
-    for (const string& sym : symbol2)
-        if (word == sym) return 2;
-    if (word == "//") return 3;
-    if (word == "/*") return 4;
+    if (find(_symbol1.begin(), _symbol1.end(), word) != _symbol1.end())
+        return 1;
+    else if (find(_symbol2.begin(), _symbol2.end(), word) != _symbol2.end())
+        return 2;
+    else if (word == "//")
+        return 3;
+    else if (word == "/*")
+        return 4;
     return 0;
 }
 
@@ -30,9 +43,21 @@ int is_symbol(char c) {
 }
 
 bool is_keyword(const string& word) {
-    for (const string& kw : keyword)
-        if (word == kw) return true;
-    return false;
+    return find(KEYWORD.begin(), KEYWORD.end(), word) != KEYWORD.end();
+}
+
+string path_processing(const fs::path& file_path) {
+    string file_name = file_path.string();
+    if (PLATFORM_NAME == "windows") {
+        if (file_name[0] == '/' && (file_name[1] > 'a' && file_name[1] < 'z')) {
+            file_name = string(1, file_name[1] - 32) + ":" + file_name.substr(2);
+        }
+    }
+    while (file_name.find("/./") != string::npos) {
+        file_name.replace(file_name.find("/./"), 3, "/");
+    }
+    replace(file_name.begin(), file_name.end(), '\\', '/');
+    return file_name;
 }
 
 // class Token
