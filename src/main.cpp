@@ -7,6 +7,7 @@ struct arguments {
     vector<string> flags = {};
     fs::path output_ast_file = fs::path("output.ast");
     int output_ast_type = -1;
+    bool output_token_flow_file = false;
     fs::path compile_file = fs::path("output.vm");
     bool compile = false;
     /*
@@ -53,9 +54,11 @@ arguments parse_arguments(int argc, char* argv[]) {
                 args.output_ast_file = path_processing(args.program_name.replace_extension(".ast"));
             } else if (arg == "--output-ast-json" || arg == "-oaj") {
                 args.output_ast_type = 1;
-                args.output_ast_file = path_processing(args.program_name.replace_extension("_ast.json"));
+                args.output_ast_file = path_processing(args.program_name.replace_extension(".ast.json"));
             } else if (arg == "--output-ast-none" || arg == "-oan")
                 args.output_ast_type = -1;
+            else if (arg == "--output-token-flow" || arg == "-otf")
+                args.output_token_flow_file = true;
             else if (arg == "--help" || arg == "-h") {
                 cout << HELP_DOCS;
                 exit(0);
@@ -147,6 +150,37 @@ string output_ast(const shared_ptr<Node> node, int ident) {
 }
 
 int main(int argc, char* argv[]) {
-    arguments args = parse_arguments(argc, argv);
+    try {
+        arguments args = parse_arguments(argc, argv);
+        if (args.files.size() == 0)
+            throw runtime_error("No input files");
+        map<const fs::path&, vector<string>&> source_code_set;
+        for (const fs::path& file : args.files) {
+            vector<string> source_code;
+            try {
+                source_code = read_file(file);
+            } catch (const runtime_error& e) {
+                cerr << "FileOpenError: " << e.what() << endl;
+                exit(1);
+            }
+            source_code_set[file] = source_code;
+            const vector<shared_ptr<Token>> tokens = lexer(source_code, file);
+            if (args.output_token_flow_file) {
+                ofstream output_file;
+                output_file.open(fs::path(file).replace_extension(".tkf"));
+                if (output_file.fail()) {
+                    cerr << "Error: Could not open output file " << file << endl;
+                    exit(1);
+                }
+                output_file << "Tokens for file: " << file << endl;
+                for (const shared_ptr<Token>& token : tokens)
+                    output_file << token->toString() << endl;
+                output_file.close();
+            }
+        }
+    } catch (const exception& e) {
+        cerr << "Error: " << e.what() << endl;
+        exit(1);
+    }
     return 0;
 }
