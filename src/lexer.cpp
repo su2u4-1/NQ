@@ -26,8 +26,7 @@ enum State {
     void_
 } state;
 
-vector<shared_ptr<Token>>
-lexer(const vector<string>& source_code, const fs::path& file_name) {
+vector<shared_ptr<Token>> lexer(const vector<string>& source_code, const fs::path& file_name) {
     vector<shared_ptr<Token>> tokens;
     string content = "";
     char pc = ' ';  // Previous character
@@ -154,6 +153,10 @@ lexer(const vector<string>& source_code, const fs::path& file_name) {
                     pos = {i + 1, j + 1};
                 } else if (s == 2)
                     tokens.push_back(make_shared<Token>("symbol", string(c, 1), file_name, (i + 1, j + 1)));
+            } else if (c == '#') {
+                state = comment_0;
+                content = "";
+                pos = {i + 1, j + 1};
             }
             pc = c;
         }
