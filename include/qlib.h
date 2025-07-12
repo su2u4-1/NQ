@@ -37,7 +37,7 @@ void error(const string& msg, const fs::path& file_name, pair<int, int> pos, con
 int is_symbol(const string& word);
 int is_symbol(char c);
 bool is_keyword(const string& word);
-string path_processing(const fs::path& file_path);
+fs::path path_processing(const fs::path& file_path);
 
 class Token {
    public:

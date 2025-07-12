@@ -46,7 +46,7 @@ bool is_keyword(const string& word) {
     return find(KEYWORD.begin(), KEYWORD.end(), word) != KEYWORD.end();
 }
 
-string path_processing(const fs::path& file_path) {
+fs::path path_processing(const fs::path& file_path) {
     string file_name = file_path.string();
     if (PLATFORM_NAME == "windows") {
         if (file_name[0] == '/' && (file_name[1] > 'a' && file_name[1] < 'z')) {
