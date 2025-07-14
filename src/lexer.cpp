@@ -67,6 +67,8 @@ vector<shared_ptr<Token>> lexer(const vector<string>& source_code, const fs::pat
                 } else {
                     if (is_keyword(content))
                         tokens.push_back(make_shared<Token>("keyword", content, file_name, pos));
+                    else if (is_builtin_type(content))
+                        tokens.push_back(make_shared<Token>("builtin_type", content, file_name, pos));
                     else
                         tokens.push_back(make_shared<Token>("identifier", content, file_name, pos));
                 }

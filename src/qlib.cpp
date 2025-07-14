@@ -1,10 +1,11 @@
 #include "../include/qlib.h"
 
 unordered_set<string> _symbol1{"*", "/", "%", "+", "-", "<<", ">>", "<", ">", "&", "^", "|", "=", "!"};
-unordered_set<string> _symbol2{"+=", "-=", "*=", "/=", "%=", "<<=", ">>=", "&=", "^=", "|=", "<=", ">=", "==", "!=", "&&", "||", "(", ")", "[", "]", "{", "}", ",", ";", ".", "~", "@", "$"};
+unordered_set<string> _symbol2{"+=", "-=", "*=", "/=", "%=", "<<=", ">>=", "&=", "^=", "|=", "<=", ">=", "==", "!=", "&&", "||", "(", ")", "[", "]", "{", "}", ",", ";", ":", ".", "~", "@", "$"};
 unordered_set<string> _op2{"*", "/", "%", "+", "-", "<<", ">>", "<", "<=", ">", ">=", "==", "!=", "&", "^", "|", "&&", "||", "=", "+=", "-=", "*=", "/=", "%=", "<<=", ">>=", "&=", "^=", "|="};
 unordered_set<string> _op1{"-", "!", "~", "@", "$"};
-unordered_set<string> KEYWORD{"if", "elif", "else", "for", "in", "while", "return", "break", "continue", "import", "const", "public", "func", "method", "class", "var", "as", "true", "false", "void", "NULL"};
+unordered_set<string> KEYWORD{"if", "elif", "else", "for", "in", "while", "return", "break", "continue", "import", "const", "public", "func", "method", "class", "var", "as", "op", "attr", "static", "true", "false", "void", "NULL"};
+unordered_set<string> BUILTINTYPE{"int", "char", "bool", "void", "str", "float", "list", "pointer", "range", "type", "tuple", "dict"};
 
 string HELP_DOCS =
     "Usage: qlib <filename> [options]\n"
@@ -13,7 +14,7 @@ string HELP_DOCS =
     "  -oaj, --output-ast-json   Output AST to JSON file\n"
     "  -oan, --output-ast-none   No output AST\n"
     "  -h,   --help              Show this help message\n";
-fs::path BASEPATH = path_processing(fs::absolute(fs::path(__FILE__).parent_path().parent_path()));
+fs::path BASEPATH = path_processing(fs::absolute(fs::path(__FILE__)).parent_path().parent_path());
 fs::path STDLIBPATH = BASEPATH / "stdlib";
 string VERSION = "x.y.z";  // Placeholder for version
 
@@ -44,6 +45,10 @@ int is_symbol(char c) {
 
 bool is_keyword(const string& word) {
     return find(KEYWORD.begin(), KEYWORD.end(), word) != KEYWORD.end();
+}
+
+bool is_builtin_type(const string& word) {
+    return find(BUILTINTYPE.begin(), BUILTINTYPE.end(), word) != BUILTINTYPE.end();
 }
 
 fs::path path_processing(const fs::path& file_path) {
