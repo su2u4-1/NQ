@@ -105,6 +105,7 @@
 ......
 ### frame structure
 > note: n is the number of arguments, m is the number of local variables
+
 |describe|pointer|
 |--------|-------|
 |arg0| <- ($fp - n)|
@@ -127,6 +128,7 @@
 ......
 ### object structure
 > note: take object0 as an example
+
 |describe|pointer|
 |--------|-------|
 |size| <- $hs|
