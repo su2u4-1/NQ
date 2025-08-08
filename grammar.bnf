@@ -1,5 +1,5 @@
 # NQ grammar
-code ::= [{<import> | <declare_var'global'> | <function> | <class> | <single_line_comment> | <multi_line_comment>}]  # <type_alias>
+code ::= [{<import> | <declare_var'global'> | <function> | <class>}]  # <type_alias>
 declare_var ::= 'var' <type> <identifier'var_name'> ['=' <expression>] [{',' <identifier'var_name'> ['=' <expression>]}] ';'
 declare_attr ::= ('attr' | 'static') ['public'] <type> <identifier'var_name'> ['=' <expression>] [{',' <identifier'var_name'> ['=' <expression>]}] ';'
 declare_args ::= [<type> <identifier'var_name'> [{',' <type> <identifier'var_name'>}]] [[','] <type> <identifier'var_name'> '*']
@@ -23,7 +23,7 @@ method ::= 'method' [('public' | 'op')] <type> <identifier'method_name'> [<decla
 statements ::= [{<if> | <for> | <while> | <return> | <expression> ';' | <break> | <continue> | <declare_var'local'> | <assign_exp>}]  # <type_alias>
 if ::= 'if' '(' <expression> ')' '{' <statements> '}' [{'elif' '(' <expression> ')' '{' <statements> '}'}] ['else' '{' <statements> '}']
 for ::= 'for' [<identifier'label'>] '(' <for_loop> ')' '{' <statements> '}' ['else' '{' <statements> '}']
-for_loop ::= <type> <identifier'var_name'> 'in' <container> | <expression> ';' <expression> ';' <expression>
+for_loop ::= <type> <identifier'var_name'> 'in' <container> | <assign_exp> ';' <expression> ';' <expression>
 container ::= <list> | <tuple> | <dict> | <str> | <expression>
 while ::= 'while' [<identifier'label'>] '(' <expression> ')' '{' <statements> '}' ['else' '{' <statements> '}']
 return ::= 'return' [<expression>] ';'

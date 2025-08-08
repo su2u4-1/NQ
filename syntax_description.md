@@ -37,7 +37,7 @@ The associativity of precedence 8 is right-to-left.
 ### processed by term
 |Operator|Description|
 |-|-|
-|-a|unary plus and minus|
+|-a|unary minus|
 |!a|logical NOT|
 |~a|bitwise NOT|
 |@a|indirection (dereference)|
