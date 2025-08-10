@@ -77,10 +77,10 @@ arguments parse_arguments(int argc, char* argv[]) {
         } else {
             fs::path t = path_processing(fs::absolute(arg));
             if (state == 0) {
-                if (fs::exists(t) && t.extension() == ".qn")
+                if (fs::exists(t) && t.extension() == ".nq")
                     args.files.push_back(t);
                 else {
-                    cerr << "Error: File " << t << " does not exist or is not a .qn file" << endl;
+                    cerr << "Error: File " << t << " does not exist or is not a .nq file" << endl;
                     exit(1);
                 }
             } else if (state == 1) {
@@ -154,7 +154,7 @@ int main(int argc, char* argv[]) {
         arguments args = parse_arguments(argc, argv);
         if (args.files.size() == 0)
             throw runtime_error("No input files");
-        map<const fs::path&, vector<string>&> source_code_set;
+        map<const fs::path, vector<string>> source_code_set;
         for (const fs::path& file : args.files) {
             vector<string> source_code;
             try {
