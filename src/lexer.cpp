@@ -154,7 +154,7 @@ vector<shared_ptr<Token>> lexer(const vector<string>& source_code, const fs::pat
                     content = c;
                     pos = {i + 1, j + 1};
                 } else if (s == 2)
-                    tokens.push_back(make_shared<Token>("symbol", string(c, 1), file_name, (i + 1, j + 1)));
+                    tokens.push_back(make_shared<Token>("symbol", string(c, 1), file_name, make_pair(i + 1, j + 1)));
             } else if (c == '#') {
                 state = comment_0;
                 content = "";
