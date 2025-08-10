@@ -9,6 +9,7 @@
 #include <memory>
 #include <string>
 #include <unordered_set>
+#include <variant>
 #include <vector>
 
 #if defined(_WIN32)

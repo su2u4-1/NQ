@@ -3,20 +3,49 @@
 
 #include "qlib.h"
 
-struct CodeChildren {
-    union code_children {
-        shared_ptr<Import> import;
-        shared_ptr<Function> function;
-        shared_ptr<Class> class_;
-        shared_ptr<DeclareGlobalVar> declare_global_var;
-    };
-    enum {
-        IMPORT,
-        FUNCTION,
-        CLASS,
-        DECLARE_GLOBAL_VAR
-    } type;
-};
+// using CodeChildren = variant<shared_ptr<void>, shared_ptr<Function>, shared_ptr<Class>, shared_ptr<DeclareGlobalVar>>;
+// using ExpressionChildren = variant<shared_ptr<Term>, shared_ptr<Operator>>;
+// using TermValue = variant<pair<TermType, shared_ptr<Term>>, shared_ptr<Variable>, shared_ptr<Expression>, shared_ptr<Value>, shared_ptr<Call>>;
+// using VariableValue = variant<string, shared_ptr<Expression>, shared_ptr<Call>, shared_ptr<Variable>, shared_ptr<Variable>>;
+// using ValueData = variant<int, char, bool, string, shared_ptr<Float>, shared_ptr<List>, shared_ptr<Expression>, shared_ptr<Dict>, shared_ptr<Tuple>>;
+// using Statement = variant<shared_ptr<If>, shared_ptr<For>, shared_ptr<While>, shared_ptr<Return>, shared_ptr<Expression>, shared_ptr<Break>, shared_ptr<Continue>, shared_ptr<DeclareLocalVar>, shared_ptr<AssignExpression>>;
+
+class Code;
+class Import;
+class DeclareGlobalVar;
+class DeclareLocalVar;
+class DeclareAttr;
+class DeclareArgs;
+class DeclareGeneric;
+class Type;
+class Expression;
+class AssignExpression;
+class Term;
+class Call;
+class UseGeneric;
+class Variable;
+class Value;
+class List;
+class Tuple;
+class Dict;
+class Operator;
+class AssignOperator;
+class Function;
+class Class;
+class Method;
+class Statements;
+class If;
+class For;
+class While;
+class Return;
+class Break;
+class Continue;
+class Float;
+class Comment;
+
+shared_ptr<Expression> expression_n(int n);
+
+using CodeChildren = variant<shared_ptr<Import>, shared_ptr<Function>, shared_ptr<Class>, shared_ptr<DeclareGlobalVar>>;
 
 class Code {
    public:
@@ -24,12 +53,17 @@ class Code {
     string name;
     string version;
     vector<CodeChildren> children;
+    Code();
+    Code(fs::path file_path, string name, string version);
 };
 
 class Import {
    public:
     fs::path path;
     string alias;
+    Import();
+    Import(string alias);
+    Import(fs::path path, string alias);
 };
 
 class DeclareGlobalVar {
@@ -37,6 +71,9 @@ class DeclareGlobalVar {
     string name;
     shared_ptr<Type> type;
     shared_ptr<Expression> expression;
+    DeclareGlobalVar();
+    DeclareGlobalVar(string name, shared_ptr<Type> type);
+    DeclareGlobalVar(string name, shared_ptr<Type> type, shared_ptr<Expression> expression = expression_n(0));
 };
 
 class DeclareLocalVar {
@@ -44,6 +81,9 @@ class DeclareLocalVar {
     string name;
     shared_ptr<Type> type;
     shared_ptr<Expression> expression;
+    DeclareLocalVar();
+    DeclareLocalVar(string name, shared_ptr<Type> type);
+    DeclareLocalVar(string name, shared_ptr<Type> type, shared_ptr<Expression> expression = expression_n(0));
 };
 
 class DeclareAttr {
@@ -51,6 +91,8 @@ class DeclareAttr {
     string name;
     shared_ptr<Type> type;
     shared_ptr<Expression> expression;
+    DeclareAttr();
+    DeclareAttr(string name, shared_ptr<Type> type, shared_ptr<Expression> expression = expression_n(0));
 };
 
 class DeclareArgs {
@@ -58,35 +100,50 @@ class DeclareArgs {
     string name;
     shared_ptr<Type> type;
     bool is_varargs;
+    DeclareArgs();
+    DeclareArgs(string name, shared_ptr<Type> type, bool is_varargs = false);
 };
 
 class DeclareGeneric {
    public:
     vector<string> names;
+    DeclareGeneric(vector<string> names = {});
 };
 
 class Type {
    public:
     bool is_const;
-    string name;
-    shared_ptr<Type> type;
+    variant<shared_ptr<Type>, string> value;
     shared_ptr<UseGeneric> generic;
+    Type();
+    Type(string name, bool is_const = false, shared_ptr<UseGeneric> generic = {});
+    Type(shared_ptr<Type> type, bool is_const = false, shared_ptr<UseGeneric> generic = {});
 };
 
-struct ExpressionChildren {
-    union expression_children {
-        shared_ptr<Term> term;
-        shared_ptr<Operator> op;
-    };
-    enum {
-        TERM,
-        OPERATOR
-    } type;
-};
+using ExpressionChildren = variant<shared_ptr<Term>, shared_ptr<Operator>>;
 
 class Expression {
    public:
     vector<ExpressionChildren> children;
+    Expression(vector<ExpressionChildren> children = {});
+};
+
+class AssignOperator {
+   public:
+    enum AssignOperatorType {
+        ASSIGN,
+        ADD_ASSIGN,
+        SUB_ASSIGN,
+        MUL_ASSIGN,
+        DIV_ASSIGN,
+        MOD_ASSIGN,
+        LEFT_SHIFT_ASSIGN,
+        RIGHT_SHIFT_ASSIGN,
+        BIT_AND_ASSIGN,
+        BIT_XOR_ASSIGN,
+        BIT_OR_ASSIGN,
+    } type;
+    AssignOperator(AssignOperatorType type = ASSIGN);
 };
 
 class AssignExpression {
@@ -94,28 +151,29 @@ class AssignExpression {
     shared_ptr<Variable> var;
     shared_ptr<AssignOperator> assign_op;
     shared_ptr<Expression> expression;
+    AssignExpression();
+    AssignExpression(shared_ptr<Variable> var, shared_ptr<Expression> expression, shared_ptr<AssignOperator> assign_op = make_shared<AssignOperator>(AssignOperator()));
 };
+
+enum TermType {
+    ADDRESSOF,
+    DEREFERENCE,
+    NEGATE,
+    BITWISE_NOT,
+    NOT,
+};
+
+using TermValue = variant<pair<TermType, shared_ptr<Term>>, shared_ptr<Variable>, shared_ptr<Expression>, shared_ptr<Value>, shared_ptr<Call>>;
 
 class Term {
    public:
-    enum TermType {
-        ADDRESSOF,
-        DEREFERENCE,
-        NEGATE,
-        BITWISE_NOT,
-        NOT,
-        CALL,
-        VARIABLE,
-        VALUE,
-        EXPRESSION,
-    } type;
-    union term_value {
-        shared_ptr<Term> term;
-        shared_ptr<Variable> variable;
-        shared_ptr<Expression> expression;
-        shared_ptr<Value> value;
-        shared_ptr<Call> call;
-    } value;
+    TermValue value;
+    Term();
+    Term(TermType type, shared_ptr<Term> term);
+    Term(shared_ptr<Variable> variable);
+    Term(shared_ptr<Expression> expression);
+    Term(shared_ptr<Value> value);
+    Term(shared_ptr<Call> call);
 };
 
 class Call {
@@ -123,74 +181,63 @@ class Call {
     shared_ptr<Variable> var;
     shared_ptr<UseGeneric> use_generic;
     vector<shared_ptr<Expression>> args;
+    Call();
+    Call(shared_ptr<Variable> var, vector<shared_ptr<Expression>> args = {}, shared_ptr<UseGeneric> use_generic = shared_ptr<UseGeneric>());
 };
 
 class UseGeneric {
    public:
     vector<shared_ptr<Type>> types;
+    UseGeneric(vector<shared_ptr<Type>> types = {});
 };
+
+using VariableValue = variant<string, shared_ptr<Expression>, shared_ptr<Call>, shared_ptr<Variable>, shared_ptr<Variable>>;
 
 class Variable {
    public:
-    enum VariableType {
-        IDENTIFIER,
-        EXPRESSION,
-        CALL,
-        SUBSCRIPT,
-        ATTRIBUTE,
-    } type;
-    union variable_value {
-        string identifier;
-        shared_ptr<Expression> expression;
-        shared_ptr<Call> call;
-        shared_ptr<Variable> subscript;
-        shared_ptr<Variable> attribute;
-    } value;
+    VariableValue value;
+    variant<shared_ptr<Expression>, string> modifier;
+    Variable();
+    Variable(string identifier);
+    Variable(shared_ptr<Expression> expression);
+    Variable(shared_ptr<Call> call);
+    Variable(shared_ptr<Variable> subscript, shared_ptr<Expression> subscript_expression);
+    Variable(shared_ptr<Variable> attribute, string attribute_name);
 };
+
+using ValueData = variant<int, char, bool, string, shared_ptr<Float>, shared_ptr<List>, shared_ptr<Expression>, shared_ptr<Dict>, shared_ptr<Tuple>>;
 
 class Value {
    public:
-    enum ValueType {
-        INT,
-        CHAR,
-        BOOL,
-        null,
-        STRING,
-        FLOAT,
-        LIST,
-        POINTER,
-        DICT,
-        TUPLE
-    } type;
-    union value_data {
-        int int_value;
-        char char_value;
-        bool bool_value;
-        string string_value;
-        shared_ptr<Float> float_value;
-        shared_ptr<List> list_value;
-        shared_ptr<Expression> pointer_value;
-        shared_ptr<Dict> dict_value;
-        shared_ptr<Tuple> tuple_value;
-    } data;
-};
-
-class Pointer {
-   public:
-    shared_ptr<Type> type;
-    shared_ptr<Expression> expression;
+    ValueData data;
+    Value();
+    Value(int int_value);
+    Value(char char_value);
+    Value(bool bool_value);
+    Value(string string_value);
+    Value(shared_ptr<Float> float_value);
+    Value(shared_ptr<List> list_value);
+    Value(shared_ptr<Expression> pointer_value);
+    Value(shared_ptr<Dict> dict_value);
+    Value(shared_ptr<Tuple> tuple_value);
 };
 
 class List {
    public:
     shared_ptr<Type> type;
     vector<shared_ptr<Expression>> elements;
+    List();
+    List(shared_ptr<Type> type);
+    List(shared_ptr<Type> type, vector<shared_ptr<Expression>> elements = {});
 };
 
 class Tuple {
    public:
     shared_ptr<Type> type;
     vector<shared_ptr<Expression>> elements;
+    Tuple();
+    Tuple(shared_ptr<Type> type);
+    Tuple(shared_ptr<Type> type, vector<shared_ptr<Expression>> elements = {});
 };
 
 class Dict {
@@ -198,6 +245,8 @@ class Dict {
     shared_ptr<Type> key_type;
     shared_ptr<Type> value_type;
     vector<pair<shared_ptr<Expression>, shared_ptr<Expression>>> elements;
+    Dict();
+    Dict(shared_ptr<Type> key_type, shared_ptr<Type> value_type, vector<pair<shared_ptr<Expression>, shared_ptr<Expression>>> elements = {});
 };
 
 class Operator {
@@ -226,23 +275,16 @@ class Operator {
         DEFERENCE,
         ADDRESS_OF,
     } type;
+    Operator();
+    Operator(OperatorType type);
 };
 
-class AssignOperator {
+using Statement = variant<shared_ptr<If>, shared_ptr<For>, shared_ptr<While>, shared_ptr<Return>, shared_ptr<Expression>, shared_ptr<Break>, shared_ptr<Continue>, shared_ptr<DeclareLocalVar>, shared_ptr<AssignExpression>>;
+
+class Statements {
    public:
-    enum AssignOperatorType {
-        ASSIGN,
-        ADD_ASSIGN,
-        SUB_ASSIGN,
-        MUL_ASSIGN,
-        DIV_ASSIGN,
-        MOD_ASSIGN,
-        LEFT_SHIFT_ASSIGN,
-        RIGHT_SHIFT_ASSIGN,
-        BIT_AND_ASSIGN,
-        BIT_XOR_ASSIGN,
-        BIT_OR_ASSIGN,
-    } type;
+    vector<Statement> statements;
+    Statements(vector<Statement> statements = {});
 };
 
 class Function {
@@ -251,7 +293,9 @@ class Function {
     shared_ptr<DeclareGeneric> generic;
     vector<shared_ptr<DeclareArgs>> args;
     shared_ptr<Type> return_type;
-    vector<shared_ptr<Statement>> body;
+    Statements body;
+    Function();
+    Function(string name, shared_ptr<Type> return_type, Statements body = Statements(), vector<shared_ptr<DeclareArgs>> args = {}, shared_ptr<DeclareGeneric> generic = shared_ptr<DeclareGeneric>());
 };
 
 struct Subroutine {
@@ -259,10 +303,7 @@ struct Subroutine {
         FUNCTION,
         METHOD
     } type;
-    union subroutine_value {
-        shared_ptr<Function> function;
-        shared_ptr<Method> method;
-    } value;
+    variant<shared_ptr<Function>, shared_ptr<Method>> value;
 };
 
 class Class {
@@ -271,6 +312,8 @@ class Class {
     shared_ptr<DeclareGeneric> generic;
     vector<shared_ptr<DeclareAttr>> attrs;
     vector<shared_ptr<Subroutine>> subroutines;
+    Class();
+    Class(string name, vector<shared_ptr<DeclareAttr>> attrs = {}, vector<shared_ptr<Subroutine>> subroutines = {}, shared_ptr<DeclareGeneric> generic = shared_ptr<DeclareGeneric>());
 };
 
 class Method {
@@ -279,88 +322,82 @@ class Method {
     shared_ptr<DeclareGeneric> generic;
     vector<shared_ptr<DeclareArgs>> args;
     shared_ptr<Type> return_type;
-    vector<shared_ptr<Statement>> body;
+    Statements body;
     string self_var_name;  // Name of the self variable in the method
-};
-
-struct Statement {
-    enum StatementType {
-        IF,
-        FOR,
-        WHILE,
-        BREAK,
-        RETURN,
-        EXPRESSION
-    } type;
-    union statement_value {
-        shared_ptr<If> if_statement;
-        shared_ptr<For> for_statement;
-        shared_ptr<While> while_statement;
-        shared_ptr<Return> return_statement;
-        shared_ptr<Expression> expression_statement;
-        shared_ptr<Break> break_statement;
-        shared_ptr<Continue> continue_statement;
-        shared_ptr<DeclareLocalVar> declare_local_var;
-        shared_ptr<AssignExpression> assign_expression;
-    } value;
+    Method();
+    Method(string name, shared_ptr<Type> return_type, vector<shared_ptr<DeclareArgs>> args = {}, Statements body = Statements(), shared_ptr<DeclareGeneric> generic = shared_ptr<DeclareGeneric>(), string self_var_name = "self");
 };
 
 class If {
    public:
-    int elif_count;
     bool has_else;
     vector<shared_ptr<Expression>> conditions;
-    vector<vector<shared_ptr<Statement>>> bodys;
+    vector<Statements> bodys;
+    If();
+    If(shared_ptr<Expression> condition, Statements body = Statements());
+    If(vector<shared_ptr<Expression>> conditions, vector<Statements> bodys = {Statements()}, bool has_else = false);
+};
+
+struct py_for_loop {
+    string var_name;
+    shared_ptr<Type> type;
+    shared_ptr<Expression> iterable;
+};
+
+struct c_for_loop {
+    shared_ptr<AssignExpression> start;
+    shared_ptr<Expression> condition;
+    shared_ptr<Expression> step;
 };
 
 class For {
    public:
     string label;
-    vector<shared_ptr<Statement>> body;
-    union for_loop {
-        struct {
-            string var_name;
-            shared_ptr<Type> type;
-            shared_ptr<Expression> iterable;
-        } py_for;
-        struct {
-            shared_ptr<AssignExpression> start;
-            shared_ptr<Expression> condition;
-            shared_ptr<Expression> step;
-        } c_for;
-    };
-    enum ForLoopType {
-        PY,
-        C
-    } loop_type;
+    Statements body;
+    variant<py_for_loop, c_for_loop> loop;
+    Statements else_body;
+    For();
+    For(string var_name, shared_ptr<Type> type, shared_ptr<Expression> iterable, Statements body = Statements(), Statements else_body = Statements(), string label = "");
+    For(shared_ptr<AssignExpression> start, shared_ptr<Expression> condition, shared_ptr<Expression> step, Statements body = Statements(), Statements else_body = Statements(), string label = "");
 };
 
 class While {
    public:
     string label;
     shared_ptr<Expression> condition;
-    vector<shared_ptr<Statement>> body;
+    Statements body;
+    Statements else_body;
+    While();
+    While(shared_ptr<Expression> condition, Statements body = Statements(), Statements else_body = Statements(), string label = "");
 };
 
 class Return {
    public:
     shared_ptr<Expression> expression;
+    Return(shared_ptr<Expression> expression = make_shared<Expression>(Expression()));
 };
 
 class Break {
    public:
     string label;
+    Break(string label = "");
 };
 
 class Continue {
    public:
     string label;
+    Continue(string label = "");
 };
 
 class Float {
    public:
     int numerator;
     int denominator;
+    Float();
+    Float(int numerator, int denominator = 1);
+    string to_string() const;
+    double to_double() const;
+    bool operator==(const Float& other) const;
 };
 
 // class Comment {
