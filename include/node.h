@@ -72,7 +72,6 @@ class DeclareGlobalVar {
     shared_ptr<Type> type;
     shared_ptr<Expression> expression;
     DeclareGlobalVar();
-    DeclareGlobalVar(string name, shared_ptr<Type> type);
     DeclareGlobalVar(string name, shared_ptr<Type> type, shared_ptr<Expression> expression = expression_n(0));
 };
 
@@ -82,7 +81,6 @@ class DeclareLocalVar {
     shared_ptr<Type> type;
     shared_ptr<Expression> expression;
     DeclareLocalVar();
-    DeclareLocalVar(string name, shared_ptr<Type> type);
     DeclareLocalVar(string name, shared_ptr<Type> type, shared_ptr<Expression> expression = expression_n(0));
 };
 
@@ -182,7 +180,7 @@ class Call {
     shared_ptr<UseGeneric> use_generic;
     vector<shared_ptr<Expression>> args;
     Call();
-    Call(shared_ptr<Variable> var, vector<shared_ptr<Expression>> args = {}, shared_ptr<UseGeneric> use_generic = shared_ptr<UseGeneric>());
+    Call(shared_ptr<Variable> var, vector<shared_ptr<Expression>> args = {}, shared_ptr<UseGeneric> use_generic = nullptr);
 };
 
 class UseGeneric {
@@ -191,7 +189,7 @@ class UseGeneric {
     UseGeneric(vector<shared_ptr<Type>> types = {});
 };
 
-using VariableValue = variant<string, shared_ptr<Expression>, shared_ptr<Call>, shared_ptr<Variable>, shared_ptr<Variable>>;
+using VariableValue = variant<string, shared_ptr<Expression>, shared_ptr<Call>, shared_ptr<Variable>>;
 
 class Variable {
    public:
@@ -227,7 +225,6 @@ class List {
     shared_ptr<Type> type;
     vector<shared_ptr<Expression>> elements;
     List();
-    List(shared_ptr<Type> type);
     List(shared_ptr<Type> type, vector<shared_ptr<Expression>> elements = {});
 };
 
@@ -236,7 +233,6 @@ class Tuple {
     shared_ptr<Type> type;
     vector<shared_ptr<Expression>> elements;
     Tuple();
-    Tuple(shared_ptr<Type> type);
     Tuple(shared_ptr<Type> type, vector<shared_ptr<Expression>> elements = {});
 };
 
