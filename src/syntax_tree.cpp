@@ -1,4 +1,4 @@
-#include "../include/node.h"
+#include "../include/syntax_tree.h"
 
 #include "../include/qlib.h"
 
