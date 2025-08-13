@@ -1,20 +1,20 @@
 #include "../include/lexer.h"
 #include "../include/qlib.h"
+#include "../include/syntax_tree.h"
 
 struct arguments {
     fs::path program_name = fs::path("output");
     vector<fs::path> files = {};
     vector<string> flags = {};
-    fs::path output_ast_file = fs::path("output.ast");
-    int output_ast_type = -1;
-    bool output_token_flow_file = false;
+
+    fs::path output_ast_file = fs::path("output.ast.json");
+    bool output_ast = false;
+
+    fs::path output_token_flow_file = fs::path("output.tkf");
+    bool output_token_flow = false;
+
     fs::path compile_file = fs::path("output.vm");
     bool compile = false;
-    /*
-    Do not output ast = -1
-    The output file extension is .ast = 0
-    The output file extension is _ast.json = 1
-    */
 };
 
 vector<string> read_file(const fs::path& file_name) {
@@ -50,16 +50,14 @@ arguments parse_arguments(int argc, char* argv[]) {
         if (arg[0] == '-') {
             args.flags.push_back(arg);
             if (arg == "--output-ast" || arg == "-oa") {
-                args.output_ast_type = 0;
-                args.output_ast_file = path_processing(args.program_name.replace_extension(".ast"));
-            } else if (arg == "--output-ast-json" || arg == "-oaj") {
-                args.output_ast_type = 1;
+                args.output_ast = true;
                 args.output_ast_file = path_processing(args.program_name.replace_extension(".ast.json"));
             } else if (arg == "--output-ast-none" || arg == "-oan")
-                args.output_ast_type = -1;
-            else if (arg == "--output-token-flow" || arg == "-otf")
-                args.output_token_flow_file = true;
-            else if (arg == "--help" || arg == "-h") {
+                args.output_ast = false;
+            else if (arg == "--output-token-flow" || arg == "-otf") {
+                args.output_token_flow = true;
+                args.output_token_flow_file = path_processing(args.program_name.replace_extension(".tkf"));
+            } else if (arg == "--help" || arg == "-h") {
                 cout << HELP_DOCS;
                 exit(0);
             } else if (arg == "--output" || arg == "-o")
@@ -95,22 +93,6 @@ arguments parse_arguments(int argc, char* argv[]) {
     return args;
 }
 
-string ast_to_json(shared_ptr<Node> node) {
-    stringstream output;
-    output << "{";
-    output << "\"type\":\"" << node->type << "\",";
-    output << "\"value\":{";
-    for (const auto& [k, v] : node->value)
-        output << '"' << k << "\":\"" << v << "\",";
-    output << "},";
-    output << "\"children\":[";
-    for (const shared_ptr<Node>& child : node->children)
-        output << ast_to_json(child);
-    output << "]";
-    output << "},";
-    return output.str();
-}
-
 string remove_json_trailing_comma(const string& json) {
     char n, p;
     bool str = false;
@@ -130,25 +112,6 @@ string remove_json_trailing_comma(const string& json) {
     return result;
 }
 
-string output_ast(const shared_ptr<Node> node, int ident) {
-    stringstream output;
-    output << string(ident * 4, ' ') << node->type << " (";
-    for (const auto& [k, v] : node->value)
-        output << k << ": " << v << ", ";
-    if (node->children.size() == 0)
-        output << ") {}" << endl;
-    else {
-        output << ")" << endl;
-        output << string(ident * 4, ' ') << "{" << endl;
-        ident++;
-        for (const auto& child : node->children)
-            output << output_ast(child, ident);
-        ident--;
-        output << string(ident * 4, ' ') << "}" << endl;
-    }
-    return output.str();
-}
-
 int main(int argc, char* argv[]) {
     try {
         arguments args = parse_arguments(argc, argv);
@@ -165,9 +128,9 @@ int main(int argc, char* argv[]) {
             }
             source_code_set[file] = source_code;
             const vector<shared_ptr<Token>> tokens = lexer(source_code, file);
-            if (args.output_token_flow_file) {
+            if (args.output_token_flow) {
                 ofstream output_file;
-                output_file.open(fs::path(file).replace_extension(".tkf"));
+                output_file.open(args.output_token_flow_file);
                 if (output_file.fail()) {
                     cerr << "Error: Could not open output file " << file << endl;
                     exit(1);
