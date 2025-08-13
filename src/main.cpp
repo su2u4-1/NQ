@@ -117,7 +117,6 @@ int main(int argc, char* argv[]) {
         arguments args = parse_arguments(argc, argv);
         if (args.files.size() == 0)
             throw runtime_error("No input files");
-        map<const fs::path, vector<string>> source_code_set;
         for (const fs::path& file : args.files) {
             vector<string> source_code;
             try {

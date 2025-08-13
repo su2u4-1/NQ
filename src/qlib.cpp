@@ -6,6 +6,7 @@ unordered_set<string> _op2{"*", "/", "%", "+", "-", "<<", ">>", "<", "<=", ">", 
 unordered_set<string> _op1{"-", "!", "~", "@", "$"};
 unordered_set<string> KEYWORD{"if", "elif", "else", "for", "in", "while", "return", "break", "continue", "import", "const", "public", "func", "method", "class", "var", "as", "op", "attr", "static", "true", "false", "void", "NULL"};
 unordered_set<string> BUILTINTYPE{"int", "char", "bool", "void", "str", "float", "list", "pointer", "range", "type", "tuple", "dict"};
+unordered_set<string> STDLIB{"io", "math"};
 
 string HELP_DOCS =
     "Usage: qlib <filename> [options]\n"
@@ -17,6 +18,10 @@ string HELP_DOCS =
 fs::path BASEPATH = path_processing(fs::absolute(fs::path(__FILE__)).parent_path().parent_path());
 fs::path STDLIBPATH = BASEPATH / "stdlib";
 string VERSION = "x.y.z";  // Placeholder for version
+
+void error(const string& msg, const fs::path& file_name, pair<int, int> pos) {
+    error(msg, file_name, pos, source_code_set[file_name][pos.first - 1]);
+}
 
 void error(const string& msg, const fs::path& file_name, pair<int, int> pos, const string& source_code) {
     // File "d:\NQ\format.py", line 50, in <module>
@@ -41,6 +46,10 @@ int is_symbol(const string& word) {
 
 int is_symbol(char c) {
     return is_symbol(string(1, c));
+}
+
+bool is_stdlib(const string& name) {
+    return find(STDLIB.begin(), STDLIB.end(), name) != STDLIB.end();
 }
 
 bool is_keyword(const string& word) {
