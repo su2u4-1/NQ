@@ -45,6 +45,7 @@ class Code {
     string name;
     string version;
     vector<CodeChildren> children;
+    vector<fs::path> import_files;
     Code();
     Code(fs::path file_path, string name, string version);
     string to_json() const;
@@ -414,6 +415,7 @@ class Float {
 };
 
 using Node = variant<Code, Import, DeclareGlobalVar, DeclareLocalVar, DeclareAttr, DeclareArgs, DeclareGeneric, Type, Expression, AssignExpression, Term, Call, UseGeneric, Variable, Value, List, Tuple, Dict, Operator, AssignOperator, Function, Class, Method, Statements, If, For, While, Return, Break, Continue, Float>;
+using Declare = variant<DeclareGlobalVar, DeclareLocalVar, DeclareAttr>;
 
 #endif  // SYNTAX_TREE_H
 
