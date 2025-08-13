@@ -1,14 +1,7 @@
-#ifndef NODE_H
-#define NODE_H
+#ifndef SYNTAX_TREE_H
+#define SYNTAX_TREE_H
 
 #include "qlib.h"
-
-// using CodeChildren = variant<shared_ptr<void>, shared_ptr<Function>, shared_ptr<Class>, shared_ptr<DeclareGlobalVar>>;
-// using ExpressionChildren = variant<shared_ptr<Term>, shared_ptr<Operator>>;
-// using TermValue = variant<pair<TermType, shared_ptr<Term>>, shared_ptr<Variable>, shared_ptr<Expression>, shared_ptr<Value>, shared_ptr<Call>>;
-// using VariableValue = variant<string, shared_ptr<Expression>, shared_ptr<Call>, shared_ptr<Variable>, shared_ptr<Variable>>;
-// using ValueData = variant<int, char, bool, string, shared_ptr<Float>, shared_ptr<List>, shared_ptr<Expression>, shared_ptr<Dict>, shared_ptr<Tuple>>;
-// using Statement = variant<shared_ptr<If>, shared_ptr<For>, shared_ptr<While>, shared_ptr<Return>, shared_ptr<Expression>, shared_ptr<Break>, shared_ptr<Continue>, shared_ptr<DeclareLocalVar>, shared_ptr<AssignExpression>>;
 
 class Code;
 class Import;
@@ -41,7 +34,6 @@ class Return;
 class Break;
 class Continue;
 class Float;
-class Comment;
 
 shared_ptr<Expression> expression_n(int n);
 
@@ -55,6 +47,7 @@ class Code {
     vector<CodeChildren> children;
     Code();
     Code(fs::path file_path, string name, string version);
+    string to_json() const;
 };
 
 class Import {
@@ -64,6 +57,7 @@ class Import {
     Import();
     Import(string alias);
     Import(fs::path path, string alias);
+    string to_json() const;
 };
 
 class DeclareGlobalVar {
@@ -73,6 +67,7 @@ class DeclareGlobalVar {
     shared_ptr<Expression> expression;
     DeclareGlobalVar();
     DeclareGlobalVar(string name, shared_ptr<Type> type, shared_ptr<Expression> expression = expression_n(0));
+    string to_json() const;
 };
 
 class DeclareLocalVar {
@@ -82,6 +77,7 @@ class DeclareLocalVar {
     shared_ptr<Expression> expression;
     DeclareLocalVar();
     DeclareLocalVar(string name, shared_ptr<Type> type, shared_ptr<Expression> expression = expression_n(0));
+    string to_json() const;
 };
 
 class DeclareAttr {
@@ -91,6 +87,7 @@ class DeclareAttr {
     shared_ptr<Expression> expression;
     DeclareAttr();
     DeclareAttr(string name, shared_ptr<Type> type, shared_ptr<Expression> expression = expression_n(0));
+    string to_json() const;
 };
 
 class DeclareArgs {
@@ -100,12 +97,14 @@ class DeclareArgs {
     bool is_varargs;
     DeclareArgs();
     DeclareArgs(string name, shared_ptr<Type> type, bool is_varargs = false);
+    string to_json() const;
 };
 
 class DeclareGeneric {
    public:
     vector<string> names;
     DeclareGeneric(vector<string> names = {});
+    string to_json() const;
 };
 
 class Type {
@@ -114,8 +113,9 @@ class Type {
     variant<shared_ptr<Type>, string> value;
     shared_ptr<UseGeneric> generic;
     Type();
-    Type(string name, bool is_const = false, shared_ptr<UseGeneric> generic = {});
-    Type(shared_ptr<Type> type, bool is_const = false, shared_ptr<UseGeneric> generic = {});
+    Type(string name, shared_ptr<UseGeneric> generic = nullptr, bool is_const = false);
+    Type(shared_ptr<Type> type, shared_ptr<UseGeneric> generic, bool is_const = false);
+    string to_json() const;
 };
 
 using ExpressionChildren = variant<shared_ptr<Term>, shared_ptr<Operator>>;
@@ -124,6 +124,7 @@ class Expression {
    public:
     vector<ExpressionChildren> children;
     Expression(vector<ExpressionChildren> children = {});
+    string to_json() const;
 };
 
 class AssignOperator {
@@ -142,6 +143,7 @@ class AssignOperator {
         BIT_OR_ASSIGN,
     } type;
     AssignOperator(AssignOperatorType type = ASSIGN);
+    string to_json() const;
 };
 
 class AssignExpression {
@@ -151,6 +153,7 @@ class AssignExpression {
     shared_ptr<Expression> expression;
     AssignExpression();
     AssignExpression(shared_ptr<Variable> var, shared_ptr<Expression> expression, shared_ptr<AssignOperator> assign_op = make_shared<AssignOperator>(AssignOperator()));
+    string to_json() const;
 };
 
 enum TermType {
@@ -172,6 +175,7 @@ class Term {
     Term(shared_ptr<Expression> expression);
     Term(shared_ptr<Value> value);
     Term(shared_ptr<Call> call);
+    string to_json() const;
 };
 
 class Call {
@@ -181,12 +185,14 @@ class Call {
     vector<shared_ptr<Expression>> args;
     Call();
     Call(shared_ptr<Variable> var, vector<shared_ptr<Expression>> args = {}, shared_ptr<UseGeneric> use_generic = nullptr);
+    string to_json() const;
 };
 
 class UseGeneric {
    public:
     vector<shared_ptr<Type>> types;
     UseGeneric(vector<shared_ptr<Type>> types = {});
+    string to_json() const;
 };
 
 using VariableValue = variant<string, shared_ptr<Expression>, shared_ptr<Call>, shared_ptr<Variable>>;
@@ -201,6 +207,7 @@ class Variable {
     Variable(shared_ptr<Call> call);
     Variable(shared_ptr<Variable> subscript, shared_ptr<Expression> subscript_expression);
     Variable(shared_ptr<Variable> attribute, string attribute_name);
+    string to_json() const;
 };
 
 using ValueData = variant<int, char, bool, string, shared_ptr<Float>, shared_ptr<List>, shared_ptr<Expression>, shared_ptr<Dict>, shared_ptr<Tuple>>;
@@ -218,6 +225,7 @@ class Value {
     Value(shared_ptr<Expression> pointer_value);
     Value(shared_ptr<Dict> dict_value);
     Value(shared_ptr<Tuple> tuple_value);
+    string to_json() const;
 };
 
 class List {
@@ -226,6 +234,7 @@ class List {
     vector<shared_ptr<Expression>> elements;
     List();
     List(shared_ptr<Type> type, vector<shared_ptr<Expression>> elements = {});
+    string to_json() const;
 };
 
 class Tuple {
@@ -234,6 +243,7 @@ class Tuple {
     vector<shared_ptr<Expression>> elements;
     Tuple();
     Tuple(shared_ptr<Type> type, vector<shared_ptr<Expression>> elements = {});
+    string to_json() const;
 };
 
 class Dict {
@@ -243,6 +253,7 @@ class Dict {
     vector<pair<shared_ptr<Expression>, shared_ptr<Expression>>> elements;
     Dict();
     Dict(shared_ptr<Type> key_type, shared_ptr<Type> value_type, vector<pair<shared_ptr<Expression>, shared_ptr<Expression>>> elements = {});
+    string to_json() const;
 };
 
 class Operator {
@@ -273,6 +284,7 @@ class Operator {
     } type;
     Operator();
     Operator(OperatorType type);
+    string to_json() const;
 };
 
 using Statement = variant<shared_ptr<If>, shared_ptr<For>, shared_ptr<While>, shared_ptr<Return>, shared_ptr<Expression>, shared_ptr<Break>, shared_ptr<Continue>, shared_ptr<DeclareLocalVar>, shared_ptr<AssignExpression>>;
@@ -281,6 +293,7 @@ class Statements {
    public:
     vector<Statement> statements;
     Statements(vector<Statement> statements = {});
+    string to_json() const;
 };
 
 class Function {
@@ -291,25 +304,21 @@ class Function {
     shared_ptr<Type> return_type;
     Statements body;
     Function();
-    Function(string name, shared_ptr<Type> return_type, Statements body = Statements(), vector<shared_ptr<DeclareArgs>> args = {}, shared_ptr<DeclareGeneric> generic = shared_ptr<DeclareGeneric>());
+    Function(string name, shared_ptr<Type> return_type, Statements body = Statements(), vector<shared_ptr<DeclareArgs>> args = {}, shared_ptr<DeclareGeneric> generic = nullptr);
+    string to_json() const;
 };
 
-struct Subroutine {
-    enum SubroutineType {
-        FUNCTION,
-        METHOD
-    } type;
-    variant<shared_ptr<Function>, shared_ptr<Method>> value;
-};
+using Subroutine = variant<shared_ptr<Function>, shared_ptr<Method>>;
 
 class Class {
    public:
     string name;
     shared_ptr<DeclareGeneric> generic;
     vector<shared_ptr<DeclareAttr>> attrs;
-    vector<shared_ptr<Subroutine>> subroutines;
+    vector<Subroutine> subroutines;
     Class();
-    Class(string name, vector<shared_ptr<DeclareAttr>> attrs = {}, vector<shared_ptr<Subroutine>> subroutines = {}, shared_ptr<DeclareGeneric> generic = shared_ptr<DeclareGeneric>());
+    Class(string name, vector<shared_ptr<DeclareAttr>> attrs = {}, vector<Subroutine> subroutines = {}, shared_ptr<DeclareGeneric> generic = nullptr);
+    string to_json() const;
 };
 
 class Method {
@@ -321,7 +330,8 @@ class Method {
     Statements body;
     string self_var_name;  // Name of the self variable in the method
     Method();
-    Method(string name, shared_ptr<Type> return_type, vector<shared_ptr<DeclareArgs>> args = {}, Statements body = Statements(), shared_ptr<DeclareGeneric> generic = shared_ptr<DeclareGeneric>(), string self_var_name = "self");
+    Method(string name, shared_ptr<Type> return_type, vector<shared_ptr<DeclareArgs>> args = {}, Statements body = Statements(), shared_ptr<DeclareGeneric> generic = nullptr, string self_var_name = "self");
+    string to_json() const;
 };
 
 class If {
@@ -332,6 +342,7 @@ class If {
     If();
     If(shared_ptr<Expression> condition, Statements body = Statements());
     If(vector<shared_ptr<Expression>> conditions, vector<Statements> bodys = {Statements()}, bool has_else = false);
+    string to_json() const;
 };
 
 struct py_for_loop {
@@ -355,6 +366,7 @@ class For {
     For();
     For(string var_name, shared_ptr<Type> type, shared_ptr<Expression> iterable, Statements body = Statements(), Statements else_body = Statements(), string label = "");
     For(shared_ptr<AssignExpression> start, shared_ptr<Expression> condition, shared_ptr<Expression> step, Statements body = Statements(), Statements else_body = Statements(), string label = "");
+    string to_json() const;
 };
 
 class While {
@@ -363,26 +375,31 @@ class While {
     shared_ptr<Expression> condition;
     Statements body;
     Statements else_body;
+    bool has_else;
     While();
-    While(shared_ptr<Expression> condition, Statements body = Statements(), Statements else_body = Statements(), string label = "");
+    While(shared_ptr<Expression> condition, Statements body = Statements(), bool has_else = false, Statements else_body = Statements(), string label = "");
+    string to_json() const;
 };
 
 class Return {
    public:
     shared_ptr<Expression> expression;
-    Return(shared_ptr<Expression> expression = make_shared<Expression>(Expression()));
+    Return(shared_ptr<Expression> expression = expression_n(0));
+    string to_json() const;
 };
 
 class Break {
    public:
     string label;
     Break(string label = "");
+    string to_json() const;
 };
 
 class Continue {
    public:
     string label;
     Continue(string label = "");
+    string to_json() const;
 };
 
 class Float {
@@ -391,18 +408,14 @@ class Float {
     int denominator;
     Float();
     Float(int numerator, int denominator = 1);
-    string to_string() const;
+    string to_json() const;
     double to_double() const;
     bool operator==(const Float& other) const;
 };
 
-// class Comment {
-//    public:
-//     string text;
-//     bool is_single;
-// };
+using Node = variant<Code, Import, DeclareGlobalVar, DeclareLocalVar, DeclareAttr, DeclareArgs, DeclareGeneric, Type, Expression, AssignExpression, Term, Call, UseGeneric, Variable, Value, List, Tuple, Dict, Operator, AssignOperator, Function, Class, Method, Statements, If, For, While, Return, Break, Continue, Float>;
 
-#endif  // NODE_H
+#endif  // SYNTAX_TREE_H
 
 // '*'  mul           MUL,
 // '/'  div           DIV,
