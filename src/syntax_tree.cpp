@@ -30,7 +30,7 @@ DeclareLocalVar::DeclareLocalVar(string name, shared_ptr<Type> type, shared_ptr<
 DeclareAttr::DeclareAttr() {
     cout << "empty DeclareAttr" << endl;
 }
-DeclareAttr::DeclareAttr(string name, shared_ptr<Type> type, shared_ptr<Expression> expression) : name(name), type(type), expression(expression) {}
+DeclareAttr::DeclareAttr(string name, shared_ptr<Type> type, shared_ptr<Expression> expression, bool is_static, bool is_public) : name(name), type(type), expression(expression), is_static(is_static), is_public(is_public) {}
 
 DeclareArgs::DeclareArgs() {
     cout << "empty DeclareArgs" << endl;
@@ -43,7 +43,6 @@ Type::Type() {
     cout << "empty Type" << endl;
 }
 Type::Type(string name, shared_ptr<UseGeneric> generic, bool is_const) : is_const(is_const), value(name), generic(generic) {}
-Type::Type(shared_ptr<Type> type, shared_ptr<UseGeneric> generic, bool is_const) : is_const(is_const), value(type), generic(generic) {}
 
 Expression::Expression(vector<ExpressionChildren> children) : children(children) {}
 
@@ -130,7 +129,6 @@ Method::Method(string name, shared_ptr<Type> return_type, vector<shared_ptr<Decl
 If::If() {
     cout << "empty If" << endl;
 }
-If::If(shared_ptr<Expression> condition, Statements body) : conditions({condition}), bodys({body}), has_else(false) {}
 If::If(vector<shared_ptr<Expression>> conditions, vector<Statements> bodys, bool has_else) : conditions(conditions), bodys(bodys), has_else(has_else) {}
 
 For::For() {
@@ -200,13 +198,7 @@ string DeclareGeneric::to_json() const {
     return "{\"node type\": \"DeclareGeneric\", \"names\": [" + s + "]}";
 }
 string Type::to_json() const {
-    string value_str;
-    if (holds_alternative<shared_ptr<Type>>(value))
-        value_str = get<shared_ptr<Type>>(value)->to_json();
-    else
-        value_str = "\"" + get<string>(value) + "\"";
-    auto a = is_const ? "true" : "false";
-    return "{\"node type\": \"Type\", \"is_const\": " + string(is_const ? "true" : "false") + ", \"value\": " + value_str + ", \"generic\": " + (generic ? generic->to_json() : "null") + "}";
+    return "{\"node type\": \"Type\", \"is_const\": " + string(is_const ? "true" : "false") + ", \"value\": \"" + value + "\", \"generic\": " + (generic ? generic->to_json() : "null") + "}";
 }
 string Expression::to_json() const {
     string s = "", t = "";
