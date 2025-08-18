@@ -42,6 +42,7 @@ int is_symbol(char c);
 bool is_stdlib(const string& name);
 bool is_keyword(const string& word);
 bool is_builtin_type(const string& word);
+int operator_priority(const string& op);
 fs::path path_processing(const fs::path& file_path);
 
 class Token {

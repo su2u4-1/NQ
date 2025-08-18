@@ -2,7 +2,8 @@
 
 unordered_set<string> _symbol1{"*", "/", "%", "+", "-", "<<", ">>", "<", ">", "&", "^", "|", "=", "!"};
 unordered_set<string> _symbol2{"+=", "-=", "*=", "/=", "%=", "<<=", ">>=", "&=", "^=", "|=", "<=", ">=", "==", "!=", "&&", "||", "(", ")", "[", "]", "{", "}", ",", ";", ":", ".", "~", "@", "$"};
-unordered_set<string> _op2{"*", "/", "%", "+", "-", "<<", ">>", "<", "<=", ">", ">=", "==", "!=", "&", "^", "|", "&&", "||", "=", "+=", "-=", "*=", "/=", "%=", "<<=", ">>=", "&=", "^=", "|="};
+unordered_set<string> _op3{"=", "+=", "-=", "*=", "/=", "%=", "<<=", ">>=", "&=", "^=", "|="};
+unordered_set<string> _op2{"*", "/", "%", "+", "-", "<<", ">>", "<", "<=", ">", ">=", "==", "!=", "&", "^", "|", "&&", "||"};
 unordered_set<string> _op1{"-", "!", "~", "@", "$"};
 unordered_set<string> KEYWORD{"if", "elif", "else", "for", "in", "while", "return", "break", "continue", "import", "const", "public", "func", "method", "class", "var", "as", "op", "attr", "static", "true", "false", "void", "NULL"};
 unordered_set<string> BUILTINTYPE{"int", "char", "bool", "void", "str", "float", "list", "pointer", "range", "type", "tuple", "dict"};
@@ -58,6 +59,26 @@ bool is_keyword(const string& word) {
 
 bool is_builtin_type(const string& word) {
     return find(BUILTINTYPE.begin(), BUILTINTYPE.end(), word) != BUILTINTYPE.end();
+}
+
+int operator_priority(const string& op) {
+    if (find(_op3.begin(), _op3.end(), op) != _op3.end())
+        return 8;
+    else if (op == "&&" || op == "||")
+        return 7;
+    else if (op == "&" || op == "^" || op == "|")
+        return 6;
+    else if (op == "==" || op == "!=")
+        return 5;
+    else if (op == "<" || op == "<=" || op == ">" || op == ">=")
+        return 4;
+    else if (op == "<<" || op == ">>")
+        return 3;
+    else if (op == "+" || op == "-")
+        return 2;
+    else if (op == "*" || op == "/" || op == "%")
+        return 1;
+    return -1;  // Not an operator
 }
 
 fs::path path_processing(const fs::path& file_path) {
