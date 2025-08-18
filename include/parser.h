@@ -18,6 +18,7 @@ class Parser {
     int index;
     Token current_token;
     string version;
+    vector<fs::path> import_files;
     Token next_token();
     void get_token();
     void rollback_token();

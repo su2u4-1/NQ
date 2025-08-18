@@ -3,10 +3,12 @@
 #include "./include/qlib.h"
 
 Parser::Parser() {
-    index = 0;
-    file_name = "";
-    current_token = Token();
     tokens = {};
+    file_name = "";
+    index = 0;
+    current_token = Token();
+    version = "";
+    import_files = {};
 }
 Token Parser::next_token() {
     return *tokens[index + 1];
@@ -41,6 +43,7 @@ shared_ptr<Code> Parser::parse(const vector<shared_ptr<Token>>& tokens, const fs
     this->file_name = file_name;
     version = version;
     index = 0;
+    import_files = {};
     get_token();
     shared_ptr<Code> code = make_shared<Code>(file_name, file_name.stem().string(), version);
     while (current_token.type != "EOF") {
@@ -76,6 +79,7 @@ shared_ptr<Import> Parser::parse_import() {
     fs::path path;
     if (current_token.type == "string") {
         path = current_token.value;
+        import_files.push_back(path);
         get_token();
         if (current_token != Token("keyword", "as"))
             parser_error("Expected 'as' after import path", current_token);
