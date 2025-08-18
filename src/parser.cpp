@@ -52,13 +52,11 @@ shared_ptr<Code> Parser::parse(const vector<shared_ptr<Token>>& tokens, const fs
             code->children.push_back(import);
             code->import_files.push_back(import->path);
         } else if (current_token == Token("keyword", "var")) {
-            for (shared_ptr<Declare> i : parse_declare(GLOBAL_VAR)) {
+            for (shared_ptr<Declare> i : parse_declare(true)) {
                 if (holds_alternative<shared_ptr<DeclareGlobalVar>>(*i))
                     code->children.push_back(get<shared_ptr<DeclareGlobalVar>>(*i));
                 else if (holds_alternative<shared_ptr<DeclareLocalVar>>(*i))
                     parser_error("Expected DeclareGlobalVar, got " + get<shared_ptr<DeclareLocalVar>>(*i)->to_json(), current_token);
-                else if (holds_alternative<shared_ptr<DeclareAttr>>(*i))
-                    parser_error("Expected DeclareGlobalVar, got " + get<shared_ptr<DeclareAttr>>(*i)->to_json(), current_token);
                 else
                     parser_error("Unknown declare type", current_token);
             }
@@ -101,3 +99,187 @@ shared_ptr<Import> Parser::parse_import() {
         parser_error("Expected ';' after import statement", current_token);
     return make_shared<Import>(path, alias);
 }
+
+vector<shared_ptr<Declare>> Parser::parse_declare(bool is_global) {
+    vector<shared_ptr<Declare>> declares;
+    get_token();
+    shared_ptr<Type> type = parse_type();
+    do {
+        get_token();
+        string name = current_token.value;
+        get_token();
+        shared_ptr<Expression> expression = make_shared<Expression>();
+        if (current_token == Token("symbol", "=")) {
+            get_token();
+            expression = parse_expression();
+            get_token();
+        }
+        if (is_global)
+            declares.push_back(make_shared<Declare>(DeclareGlobalVar{name, type, expression}));
+        else
+            declares.push_back(make_shared<Declare>(DeclareLocalVar{name, type, expression}));
+    } while (current_token == Token("symbol", ","));
+    if (current_token != Token("symbol", ";"))
+        parser_error("Expected ';' after declare statement", current_token);
+    return declares;
+}
+
+vector<shared_ptr<DeclareAttr>> Parser::parse_declare_attr() {
+    vector<shared_ptr<DeclareAttr>> attrs;
+    bool is_static = false;
+    if (current_token == Token("keyword", "static"))
+        is_static = true;
+    get_token();
+    bool is_public = false;
+    if (current_token == Token("keyword", "public")) {
+        is_public = true;
+        get_token();
+    }
+    shared_ptr<Type> type = parse_type();
+    do {
+        get_token();
+        string name = current_token.value;
+        get_token();
+        shared_ptr<Expression> expression = make_shared<Expression>();
+        if (current_token == Token("symbol", "=")) {
+            get_token();
+            expression = parse_expression();
+            get_token();
+        }
+        attrs.push_back(make_shared<DeclareAttr>(name, type, expression, is_static, is_public));
+    } while (current_token == Token("symbol", ","));
+    if (current_token != Token("symbol", ";"))
+        parser_error("Expected ';' after declare statement", current_token);
+    return attrs;
+}
+
+shared_ptr<Type> Parser::parse_type() {
+    bool is_const = false;
+    if (current_token == Token("keyword", "const")) {
+        is_const = true;
+        get_token();
+    }
+    if (current_token.type == "identifier" || current_token.type == "builtin_type") {
+        string type_name = current_token.value;
+        get_token();
+        shared_ptr<UseGeneric> generic = make_shared<UseGeneric>();
+        if (current_token == Token("symbol", "<"))
+            generic = parse_use_generic();
+        return make_shared<Type>(type_name, generic, is_const);
+    } else
+        parser_error("Expected identifier or builtin type after", current_token);
+}
+
+shared_ptr<Expression> Parser::parse_expression() {
+    vector<ExpressionChildren> children;
+    shared_ptr<Term> term = parse_term();
+    children.push_back(term);
+    while (current_token.type == "symbol" && operator_priority(current_token.value) > -1) {
+        children.push_back(make_shared<Operator>(current_token.value));
+        get_token();
+        children.push_back(parse_term());
+    }
+    // TODO: convert infix to postfix
+    return make_shared<Expression>(children);
+}
+
+shared_ptr<Term> Parser::parse_term() {}
+
+shared_ptr<Variable> Parser::parse_variable(shared_ptr<Variable> var) {}
+
+shared_ptr<UseGeneric> Parser::parse_use_generic() {
+    vector<shared_ptr<Type>> types;
+    do {
+        get_token();
+        types.push_back(parse_type());
+        get_token();
+    } while (current_token == Token("symbol", ","));
+    if (current_token != Token("symbol", ">"))
+        parser_error("Expected '>' after use generic declaration", current_token);
+}
+
+shared_ptr<DeclareGeneric> Parser::parse_declare_generic() {
+    vector<string> names;
+    do {
+        get_token();
+        if (current_token.type != "identifier")
+            parser_error("Expected identifier after ',' in declare generic", current_token);
+        names.push_back(current_token.value);
+        get_token();
+    } while (current_token == Token("symbol", ","));
+    if (current_token != Token("symbol", ">"))
+        parser_error("Expected '>' after declare generic", current_token);
+    return make_shared<DeclareGeneric>(names);
+}
+
+shared_ptr<Call> Parser::parse_call(shared_ptr<Variable> var) {}
+
+shared_ptr<Function> Parser::parse_function() {}
+
+shared_ptr<Class> Parser::parse_class() {}
+
+shared_ptr<Method> Parser::parse_method() {}
+
+vector<shared_ptr<DeclareArgs>> Parser::parse_declare_args() {}
+
+shared_ptr<List> Parser::parse_list() {
+    vector<shared_ptr<Expression>> elements;
+    do {
+        get_token();
+        elements.push_back(parse_expression());
+        get_token();
+    } while (current_token == Token("symbol", ","));
+    if (current_token != Token("symbol", "]"))
+        parser_error("Expected ',' or ']' in list declaration", current_token);
+    return make_shared<List>(Type(), elements);
+}
+
+shared_ptr<Tuple> Parser::parse_tuple() {}
+
+shared_ptr<Dict> Parser::parse_dict() {}
+
+Statements Parser::parse_statements() {}
+
+shared_ptr<If> Parser::parse_if() {}
+
+shared_ptr<For> Parser::parse_for() {}
+
+shared_ptr<While> Parser::parse_while() {}
+
+shared_ptr<Break> Parser::parse_break() {
+    string label;
+    get_token();
+    if (current_token.type == "identifier") {
+        label = current_token.value;
+        get_token();
+    }
+    if (current_token != Token("symbol", ";"))
+        parser_error("Expected ';' after break statement", current_token);
+    return make_shared<Break>(label);
+}
+
+shared_ptr<Return> Parser::parse_return() {
+    shared_ptr<Expression> expression = make_shared<Expression>();
+    get_token();
+    if (current_token != Token("symbol", ";")) {
+        expression = parse_expression();
+        get_token();
+        if (current_token != Token("symbol", ";"))
+            parser_error("Expected ';' after return statement", current_token);
+    }
+    return make_shared<Return>(expression);
+}
+
+shared_ptr<Continue> Parser::parse_continue() {
+    string label;
+    get_token();
+    if (current_token.type == "identifier") {
+        label = current_token.value;
+        get_token();
+    }
+    if (current_token != Token("symbol", ";"))
+        parser_error("Expected ';' after continue statement", current_token);
+    return make_shared<Continue>(label);
+}
+
+shared_ptr<Float> Parser::parse_float() {}

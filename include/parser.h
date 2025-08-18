@@ -4,12 +4,6 @@
 #include "qlib.h"
 #include "syntax_tree.h"
 
-enum DeclareType {
-    GLOBAL_VAR,
-    LOCAL_VAR,
-    ATTR
-};
-
 class Parser {
    public:
     Parser();
@@ -27,7 +21,8 @@ class Parser {
     bool isCall();
     shared_ptr<Code> parse(const vector<shared_ptr<Token>>& tokens, const fs::path& file_name, string version = "none");
     shared_ptr<Import> parse_import();
-    vector<shared_ptr<Declare>> parse_declare(DeclareType type);
+    vector<shared_ptr<Declare>> parse_declare(bool is_global);
+    vector<shared_ptr<DeclareAttr>> parse_declare_attr();
     shared_ptr<Type> parse_type();
     shared_ptr<Expression> parse_expression();
     shared_ptr<Term> parse_term();
