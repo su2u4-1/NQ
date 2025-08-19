@@ -61,6 +61,56 @@ bool is_builtin_type(const string& word) {
     return find(BUILTINTYPE.begin(), BUILTINTYPE.end(), word) != BUILTINTYPE.end();
 }
 
+int operator_priority(int op_type) {
+    switch (op_type) {
+        case 0:  // *
+            return 1;
+        case 1:  // /
+            return 1;
+        case 2:  // %
+            return 1;
+        case 3:  // +
+            return 2;
+        case 4:  // -
+            return 2;
+        case 5:  // <<
+            return 3;
+        case 6:  // >>
+            return 3;
+        case 7:  // <
+            return 4;
+        case 8:  // <=
+            return 4;
+        case 9:  // >
+            return 4;
+        case 10:  // >=
+            return 4;
+        case 11:  // ==
+            return 5;
+        case 12:  // !=
+            return 5;
+        case 13:  // &
+            return 6;
+        case 14:  // ^
+            return 6;
+        case 15:  // |
+            return 6;
+        case 16:  // &&
+            return 7;
+        case 17:  // ||
+            return 7;
+        case 18:  // !
+            return 8;
+        case 19:  // ~
+            return 8;
+        case 20:  // @
+            return 8;
+        case 21:  // $
+            return 8;
+        default:
+            return -1;  // Not an operator
+    }
+}
 int operator_priority(const string& op) {
     if (find(_op3.begin(), _op3.end(), op) != _op3.end())
         return 8;

@@ -2,10 +2,6 @@
 
 #include "../include/qlib.h"
 
-shared_ptr<Expression> expression_n(int n) {
-    return make_shared<Expression>(vector<ExpressionChildren>{ExpressionChildren(make_shared<Term>(Term(make_shared<Value>(Value(n)))))});
-}
-
 Code::Code() {
     cout << "empty Code" << endl;
 }
@@ -37,6 +33,9 @@ DeclareArgs::DeclareArgs() {
 }
 DeclareArgs::DeclareArgs(string name, shared_ptr<Type> type, bool is_varargs) : name(name), type(type), is_varargs(is_varargs) {}
 
+DeclareGeneric::DeclareGeneric() {
+    cout << "empty DeclareGeneric" << endl;
+}
 DeclareGeneric::DeclareGeneric(vector<string> names) : names(names) {}
 
 Type::Type() {
@@ -44,8 +43,29 @@ Type::Type() {
 }
 Type::Type(string name, shared_ptr<UseGeneric> generic, bool is_const) : is_const(is_const), value(name), generic(generic) {}
 
-Expression::Expression(vector<ExpressionChildren> children) : children(children) {}
+Expression::Expression() {
+    cout << "empty Expression" << endl;
+}
+Expression::Expression(shared_ptr<Term> operand) {
+    value = operand;
+    type = TERM;
+}
+Expression::Expression(shared_ptr<Expression> left, shared_ptr<Operator> op, shared_ptr<Term> right) {
+    type = NODE;
+    value = ExpressionNode{left, op, make_shared<Expression>(right)};
+}
+Expression::Expression(shared_ptr<Expression> left, shared_ptr<Operator> op, shared_ptr<Expression> right) {
+    type = NODE;
+    value = ExpressionNode{left, op, right};
+}
+Expression::Expression(shared_ptr<Term> left, shared_ptr<Operator> op, shared_ptr<Expression> right) {
+    type = NODE;
+    value = ExpressionNode{make_shared<Expression>(left), op, right};
+}
 
+AssignOperator::AssignOperator() {
+    cout << "empty AssignOperator" << endl;
+}
 AssignOperator::AssignOperator(AssignOperatorType type) : type(type) {}
 
 AssignExpression::AssignExpression() {
@@ -67,6 +87,9 @@ Call::Call() {
 }
 Call::Call(shared_ptr<Variable> var, vector<shared_ptr<Expression>> args, shared_ptr<UseGeneric> use_generic) : var(var), args(args), use_generic(use_generic) {}
 
+UseGeneric::UseGeneric() {
+    cout << "empty UseGeneric" << endl;
+}
 UseGeneric::UseGeneric(vector<shared_ptr<Type>> types) : types(types) {}
 
 Variable::Variable() {
@@ -78,7 +101,9 @@ Variable::Variable(shared_ptr<Call> call) : value(call) {}
 Variable::Variable(shared_ptr<Variable> subscript, shared_ptr<Expression> subscript_expression) : value(subscript), modifier(subscript_expression) {}
 Variable::Variable(shared_ptr<Variable> attribute, string attribute_name) : value(attribute), modifier(attribute_name) {}
 
-Value::Value() : data(0) {}
+Value::Value() : data(0) {
+    cout << "empty Value" << endl;
+}
 Value::Value(int int_value) : data(int_value) {}
 Value::Value(char char_value) : data(char_value) {}
 Value::Value(bool bool_value) : data(bool_value) {}
@@ -108,7 +133,56 @@ Operator::Operator() {
     cout << "empty Operator" << endl;
 }
 Operator::Operator(OperatorType type) : type(type) {}
+Operator::Operator(string op) {
+    if (op == "*")
+        type = MUL;
+    else if (op == "/")
+        type = DIV;
+    else if (op == "%")
+        type = MOD;
+    else if (op == "+")
+        type = ADD;
+    else if (op == "-")
+        type = SUB;
+    else if (op == "<<")
+        type = LEFT_SHIFT;
+    else if (op == ">>")
+        type = RIGHT_SHIFT;
+    else if (op == "<")
+        type = LESS;
+    else if (op == "<=")
+        type = LESS_EQUAL;
+    else if (op == ">")
+        type = GREATER;
+    else if (op == ">=")
+        type = GREATER_EQUAL;
+    else if (op == "==")
+        type = EQUAL;
+    else if (op == "!=")
+        type = NOT_EQUAL;
+    else if (op == "&")
+        type = BIT_AND;
+    else if (op == "^")
+        type = BIT_XOR;
+    else if (op == "|")
+        type = BIT_OR;
+    else if (op == "&&")
+        type = AND;
+    else if (op == "||")
+        type = OR;
+    else if (op == "!")
+        type = NOT;
+    else if (op == "~")
+        type = BIT_NOT;
+    else if (op == "@")
+        type = DEFERENCE;
+    else if (op == "$")
+        type = ADDRESS_OF;
+}
 
+Statements::Statements() {
+    cout << "Statements" << endl;
+}
 Statements::Statements(vector<Statement> statements) : statements(statements) {}
 
 Function::Function() {
@@ -142,10 +216,19 @@ While::While() {
 }
 While::While(shared_ptr<Expression> condition, Statements body, bool has_else, Statements else_body, string label) : label(label), condition(condition), body(body), has_else(has_else), else_body(else_body) {}
 
+Return::Return() {
+    cout << "empty Return" << endl;
+}
 Return::Return(shared_ptr<Expression> expression) : expression(expression ? expression : make_shared<Expression>(Expression())) {}
 
+Break::Break() {
+    cout << "empty Break" << endl;
+}
 Break::Break(string label) : label(label) {}
 
+Continue::Continue() {
+    cout << "empty Continue" << endl;
+}
 Continue::Continue(string label) : label(label) {}
 
 Float::Float() {
@@ -201,15 +284,11 @@ string Type::to_json() const {
     return "{\"node type\": \"Type\", \"is_const\": " + string(is_const ? "true" : "false") + ", \"value\": \"" + value + "\", \"generic\": " + (generic ? generic->to_json() : "null") + "}";
 }
 string Expression::to_json() const {
-    string s = "", t = "";
-    for (const auto &child : children) {
-        if (holds_alternative<shared_ptr<Term>>(child))
-            s += t + get<shared_ptr<Term>>(child)->to_json();
-        else if (holds_alternative<shared_ptr<Operator>>(child))
-            s += t + get<shared_ptr<Operator>>(child)->to_json();
-        t = ",";
-    }
-    return "{\"node type\": \"Expression\", \"children\": [" + s + "]}";
+    if (type == NODE)
+        return "{\"node type\": \"Expression\", \"left\": " + (get<ExpressionNode>(value).left ? get<ExpressionNode>(value).left->to_json() : "null") + ", \"op\": " + (get<ExpressionNode>(value).op ? get<ExpressionNode>(value).op->to_json() : "null") + ", \"right\": " + (get<ExpressionNode>(value).right ? get<ExpressionNode>(value).right->to_json() : "null") + "}";
+    else if (type == TERM)
+        return "{\"node type\": \"Expression\", \"operand\": " + get<shared_ptr<Term>>(value)->to_json() + "}";
+    return "{\"node type\": \"Expression\", \"value\": null}";
 }
 string AssignExpression::to_json() const {
     return "{\"node type\": \"AssignExpression\", \"var\": " + var->to_json() + ", \"assign_op\": " + assign_op->to_json() + ", \"expression\": " + expression->to_json() + "}";

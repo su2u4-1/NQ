@@ -6,7 +6,7 @@ declare_args ::= [<type> <identifier'var_name'> [{',' <type> <identifier'var_nam
 declare_generic ::= '<' <identifier'type_name'> [{',' <identifier'type_name'>}] '>'
 type ::= ['const'] (<builtin_type> | <identifier'class_name'>) [<use_generic>]
 # type_alias ::= 'type' <identifier'type_name'> [<use_generic>] '=' <type> [<use_generic>] ';'
-expression ::= <term> {<operator> <term>}
+expression ::= <expression> <operator> <expression> | <term>
 assign_exp ::= variable <assign_op> <expression> ';'
 term ::= ('$' | '@' | '-' | '~' | '!') <term> | <call> | <variable> | <value> | '(' <expression> ')'
 call ::= <variable> [<use_generic>] '(' [<expression> [{',' <expression>}]] ')'

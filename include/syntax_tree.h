@@ -121,13 +121,23 @@ class Type {
     string to_json() const;
 };
 
-using ExpressionChildren = variant<shared_ptr<Term>, shared_ptr<Operator>>;
-
+struct ExpressionNode {
+    shared_ptr<Expression> left;
+    shared_ptr<Operator> op;
+    shared_ptr<Expression> right;
+};
 class Expression {
    public:
-    vector<ExpressionChildren> children;
+    variant<shared_ptr<Term>, ExpressionNode> value;
+    enum ExpressionValueType {
+        TERM,
+        NODE,
+    } type;
     Expression();
-    Expression(vector<ExpressionChildren> children);
+    Expression(shared_ptr<Term> operand);
+    Expression(shared_ptr<Expression> left, shared_ptr<Operator> op, shared_ptr<Term> right);
+    Expression(shared_ptr<Expression> left, shared_ptr<Operator> op, shared_ptr<Expression> right);
+    Expression(shared_ptr<Term> left, shared_ptr<Operator> op, shared_ptr<Expression> right);
     string to_json() const;
 };
 
@@ -290,6 +300,7 @@ class Operator {
     } type;
     Operator();
     Operator(OperatorType type);
+    Operator(string op);
     string to_json() const;
 };
 

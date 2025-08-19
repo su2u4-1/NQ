@@ -24,7 +24,7 @@ class Parser {
     vector<shared_ptr<Declare>> parse_declare(bool is_global);
     vector<shared_ptr<DeclareAttr>> parse_declare_attr();
     shared_ptr<Type> parse_type();
-    shared_ptr<Expression> parse_expression();
+    shared_ptr<Expression> parse_expression(shared_ptr<Expression> left = nullptr);
     shared_ptr<Term> parse_term();
     shared_ptr<Variable> parse_variable(shared_ptr<Variable> var);
     shared_ptr<UseGeneric> parse_use_generic();

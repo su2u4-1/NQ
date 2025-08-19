@@ -170,17 +170,21 @@ shared_ptr<Type> Parser::parse_type() {
         parser_error("Expected identifier or builtin type after", current_token);
 }
 
-shared_ptr<Expression> Parser::parse_expression() {
-    vector<ExpressionChildren> children;
-    shared_ptr<Term> term = parse_term();
-    children.push_back(term);
-    while (current_token.type == "symbol" && operator_priority(current_token.value) > -1) {
-        children.push_back(make_shared<Operator>(current_token.value));
+shared_ptr<Expression> Parser::parse_expression(shared_ptr<Expression> left) {
+    if (left == nullptr)
+        return parse_expression(make_shared<Expression>(make_shared<Term>(parse_term())));
+    get_token();
+    int p = operator_priority(current_token.value);
+    if (current_token.type == "symbol" && p > -1) {
+        shared_ptr<Operator> op = make_shared<Operator>(current_token.value);
         get_token();
-        children.push_back(parse_term());
+        shared_ptr<Term> right = parse_term();
+        if (p < operator_priority(get<ExpressionNode>(left->value).op->type))
+            return make_shared<Expression>(get<ExpressionNode>(left->value).left, get<ExpressionNode>(left->value).op, make_shared<Expression>(get<ExpressionNode>(left->value).right, op, right));
+        return parse_expression(make_shared<Expression>(left, op, right));
     }
-    // TODO: convert infix to postfix
-    return make_shared<Expression>(children);
+    rollback_token();
+    return left;
 }
 
 shared_ptr<Term> Parser::parse_term() {}
