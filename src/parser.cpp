@@ -187,9 +187,13 @@ shared_ptr<Expression> Parser::parse_expression(shared_ptr<Expression> left) {
     return left;
 }
 
-shared_ptr<Term> Parser::parse_term() {}
+shared_ptr<Term> Parser::parse_term() {
+    // TODO
+}
 
-shared_ptr<Variable> Parser::parse_variable(shared_ptr<Variable> var) {}
+shared_ptr<Variable> Parser::parse_variable(shared_ptr<Variable> var) {
+    // TODO
+}
 
 shared_ptr<UseGeneric> Parser::parse_use_generic() {
     vector<shared_ptr<Type>> types;
@@ -216,15 +220,25 @@ shared_ptr<DeclareGeneric> Parser::parse_declare_generic() {
     return make_shared<DeclareGeneric>(names);
 }
 
-shared_ptr<Call> Parser::parse_call(shared_ptr<Variable> var) {}
+shared_ptr<Call> Parser::parse_call(shared_ptr<Variable> var) {
+    // TODO
+}
 
-shared_ptr<Function> Parser::parse_function() {}
+shared_ptr<Function> Parser::parse_function() {
+    // TODO
+}
 
-shared_ptr<Class> Parser::parse_class() {}
+shared_ptr<Class> Parser::parse_class() {
+    // TODO
+}
 
-shared_ptr<Method> Parser::parse_method() {}
+shared_ptr<Method> Parser::parse_method() {
+    // TODO
+}
 
-vector<shared_ptr<DeclareArgs>> Parser::parse_declare_args() {}
+vector<shared_ptr<DeclareArgs>> Parser::parse_declare_args() {
+    // TODO
+}
 
 shared_ptr<List> Parser::parse_list() {
     vector<shared_ptr<Expression>> elements;
@@ -238,17 +252,29 @@ shared_ptr<List> Parser::parse_list() {
     return make_shared<List>(Type(), elements);
 }
 
-shared_ptr<Tuple> Parser::parse_tuple() {}
+shared_ptr<Tuple> Parser::parse_tuple() {
+    // TODO
+}
 
-shared_ptr<Dict> Parser::parse_dict() {}
+shared_ptr<Dict> Parser::parse_dict() {
+    // TODO
+}
 
-Statements Parser::parse_statements() {}
+Statements Parser::parse_statements() {
+    // TODO
+}
 
-shared_ptr<If> Parser::parse_if() {}
+shared_ptr<If> Parser::parse_if() {
+    // TODO
+}
 
-shared_ptr<For> Parser::parse_for() {}
+shared_ptr<For> Parser::parse_for() {
+    // TODO
+}
 
-shared_ptr<While> Parser::parse_while() {}
+shared_ptr<While> Parser::parse_while() {
+    // TODO
+}
 
 shared_ptr<Break> Parser::parse_break() {
     string label;
@@ -286,4 +312,18 @@ shared_ptr<Continue> Parser::parse_continue() {
     return make_shared<Continue>(label);
 }
 
-shared_ptr<Float> Parser::parse_float() {}
+shared_ptr<Float> Parser::parse_float() {
+    int a, b, c;
+    if (current_token.type != "int")
+        parser_error("Expected integer part of float", current_token);
+    a = stoi(current_token.value);
+    get_token();
+    if (current_token != Token("symbol", "."))
+        parser_error("Expected '.' in float", current_token);
+    get_token();
+    if (current_token.type != "int")
+        parser_error("Expected fractional part of float", current_token);
+    b = stoi(current_token.value);
+    c = pow(10, current_token.value.size());
+    return make_shared<Float>(a * c + b, c);
+}

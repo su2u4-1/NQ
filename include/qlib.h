@@ -2,11 +2,13 @@
 #define QLIB_H
 
 #include <algorithm>
+#include <cmath>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <map>
 #include <memory>
+#include <numeric>
 #include <string>
 #include <unordered_set>
 #include <variant>

@@ -234,7 +234,13 @@ Continue::Continue(string label) : label(label) {}
 Float::Float() {
     cout << "empty Float" << endl;
 }
-Float::Float(int numerator, int denominator) : numerator(numerator), denominator(denominator) {}
+Float::Float(int numerator, int denominator) {
+    if (denominator == 0)
+        throw runtime_error("Denominator cannot be zero");
+    int g = gcd(numerator, denominator);
+    this->numerator = numerator / g;
+    this->denominator = denominator / g;
+}
 bool Float::operator==(const Float &other) const {
     return numerator * other.denominator == other.numerator * denominator;
 }
